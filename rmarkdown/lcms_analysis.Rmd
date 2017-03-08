@@ -1,0 +1,222 @@
+---
+title: "Proteomics grinta!"
+author: "Marc A.T. Teunis"
+date: "`r Sys.Date()"
+output: html_document
+---
+
+see vignette at:
+```{r, eval = FALSE}
+## list all the vignettes in the RforProteomics package
+
+vignette(package = "RforProteomics")
+## Open the vignette called RforProteomics
+vignette("RforProteomics", package = "RforProteomics")
+## or just
+vignette("RforProteomics")
+```
+
+## Packages
+To install the necessary packages:
+```{r, eval=FALSE}
+## only first time you install Bioconductor packages
+ source("http://www.bioconductor.org/biocLite.R")
+## else
+# library("BiocInstaller")
+# biocLite("RforProteomics", dependencies = TRUE)
+# biocLite("mzR")
+# biocLite("msdata")
+
+library("mzR") ## the software package
+# install.packages("msdata")
+## install.packages("readMSdata")
+library("msdata") ## the data package
+
+
+```
+
+## To find the R file that contains the code of the Vignette
+```{r}
+
+rfile <- system.file("doc/RforProteomics.R",
+package = "RforProteomics")
+rfile
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading mzXML data from the Grinta! study
+
+```{r define_project_root, include=FALSE}
+
+if(!require("rprojroot")) install.packages("rprojroot", dependencies = TRUE)
+library(rprojroot)
+root <- rprojroot::find_root_file(criterion = is_rstudio_project)
+root
+```
+
+## ----style, eval=TRUE, echo=FALSE, results="asis"---------------------------------------
+## BiocStyle::latex()
+
+## ----openraw----------------------------------------------------------------------------
+```{r}
+
+#library(mzR)
+#library(msdata)
+
+ filepath <- paste0(root,
+                    "/data-raw")
+ 
+
+
+raw_files <- list.files(filepath, pattern="*.mzXML",
+                     full.names=TRUE, recursive = TRUE)
+ 
+
+
+mz_list <- lapply(raw_files, openMSfile)
+
+mz_list[[1]]
+
+headers_list <- lapply(mz_list, header) 
+peaks <- peaks(ms)
+
+ms <- mz_list[[1]]
+hd <- header(ms)
+names(hd)
+
+
+head(peaks(ms))
+
+runInfo(ms)
+
+
+```
+
+```{r}
+mz_plot <- function(ms, scan){
+
+plot(peaks(ms, scan), type = "h")
+
+}
+
+plot(peaks(ms, 900), type = "h")
+
+
+
+```
+
+## A heatmap
+```{r}
+library(MSnbase)
+## a set of spectra of interest: MS1 spectra eluted
+## between 30 and 35 minutes retention time
+ms1 <- which(hd$msLevel == 1)
+rtsel <- hd$retentionTime[ms1] / 60 > 5 &
+    hd$retentionTime[ms1] / 60 < 30
+
+
+??MSmap
+
+## the map
+M <- MSmap(ms, ms1[rtsel], 400, 500, 0.5, hd)
+
+## 1
+
+plot(M, aspect = 1, allTicks = FALSE)
+
+plot3D(M)
+
+
+M_df <- as.data.frame(signature(from = M, to = "data.frame"))
+
+?`plot3D,MSmap-method`
+
+```
+
+
+
+
+
+
+
+
+```{r}
+fileName(mz)
+ runInfo(mz_list)
+ close(mz)
+
+mzxml <- system.file(paste0("", 
+                     package = "msdata")
+aa <- openMSfile(mzxml) ## ramp, default backend
+
+## ----get header information-------------------------------------------------------------
+runInfo(aa)
+instrumentInfo(aa)
+header(aa,1)
+
+## ----plotspectrum-----------------------------------------------------------------------
+pl <- peaks(aa,10)
+peaksCount(aa,10)
+head(pl)
+plot(pl[,1], pl[,2], type="h", lwd=1)
+
+## ----close the file---------------------------------------------------------------------
+close(aa)
+
+## ----openid-----------------------------------------------------------------------------
+library(mzR)
+library(msdata)
+
+file <- system.file("mzid", "Tandem.mzid.gz", package="msdata")
+x <- openIDfile(file)
+
+## ----metadata---------------------------------------------------------------------------
+mzidInfo(x)
+
+## ----psms0------------------------------------------------------------------------------
+p <- psms(x)
+colnames(p)
+
+## ----psms1------------------------------------------------------------------------------
+m <- modifications(x)
+head(m)
+
+## ----psms2------------------------------------------------------------------------------
+scr <- score(x)
+colnames(scr)
+
+## ----label=sessioninfo, results='asis', echo=FALSE--------------------------------------
+toLatex(sessionInfo())
+
+
+
+
+```
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
