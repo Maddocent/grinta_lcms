@@ -20,12 +20,10 @@ vignette("RforProteomics")
 To install the necessary packages:
 ```{r, eval=FALSE}
 ## only first time you install Bioconductor packages
-<<<<<<< HEAD
+
 # source("http://www.bioconductor.org/biocLite.R")
-=======
 ## source("http://www.bioconductor.org/biocLite.R")
->>>>>>> f3176592a8aa444008f86a42ee9a748bccc5b1af
-## else
+# else
 # library("BiocInstaller")
 # biocLite("RforProteomics", dependencies = TRUE)
 # biocLite("mzR")
@@ -38,8 +36,20 @@ library("msdata") ## the data package
 library(RforProteomics)
 library(tidyverse)
 
+## see: http://mzmatch.sourceforge.net/installation.php
+
+source("http://bioconductor.org/biocLite.R")
+biocLite(c("xcms", "multtest", "mzR"))
+install.packages(c("rJava", "XML", "snow", "caTools",
+   "bitops", "ptw", "gplots", "tcltk2"))
+
+source ("http://puma.ibls.gla.ac.uk/mzmatch.R/install_mzmatch.R")
+require (mzmatch.R)
+mzmatch.init ()
 
 ```
+
+
 
 ## To find the R file that contains the code of the Vignette
 ```{r}
@@ -92,6 +102,24 @@ MAplot(qnt, cex = .8)
 
 
 ```
+
+
+## PeakML viewer
+```{r}
+require (mzmatch.R)
+PeakML.Viewer ()
+?mzmatch.R	
+#browseVignettes(package = "mzmatch.R")
+browseVignettes(package = "xcms")
+library(xcms)
+cdffiles <- list.files(filepath, recursive = TRUE, full.names = TRUE)
+xset <- xcmsSet(cdffiles)
+xset
+
+
+``` 
+
+
 
 
 ```{r}
