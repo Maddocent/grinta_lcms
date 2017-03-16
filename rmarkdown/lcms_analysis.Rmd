@@ -20,7 +20,7 @@ vignette("RforProteomics")
 To install the necessary packages:
 ```{r, eval=FALSE}
 ## only first time you install Bioconductor packages
- source("http://www.bioconductor.org/biocLite.R")
+# source("http://www.bioconductor.org/biocLite.R")
 ## else
 # library("BiocInstaller")
 # biocLite("RforProteomics", dependencies = TRUE)
@@ -31,7 +31,7 @@ library("mzR") ## the software package
 # install.packages("msdata")
 ## install.packages("readMSdata")
 library("msdata") ## the data package
-
+library(RforProteomics)
 
 ```
 
@@ -63,26 +63,40 @@ root
 
 ## ----openraw----------------------------------------------------------------------------
 ```{r}
+filepath <- paste0(root, "/data-raw")
+files <- list.files(filepath, full.names = TRUE)
+# file <- dir(system.file(package = "MSnbase", dir = filepath),
+#full.names = TRUE, pattern = "*mzXML")
+
+qnt <- readMSData2(files, msLevel = 1, verbose = FALSE, centroided. = TRUE)
+
+plot(qnt[[44]])
 
 #library(mzR)
 #library(msdata)
 
- filepath <- paste0(root,
-                    "/data-raw")
- 
 
 
-raw_files <- list.files(filepath, pattern="*.mzXML",
-                     full.names=TRUE, recursive = TRUE)
- 
+# mz_list <- lapply(files, openMSfile)
+
+# png(filename = "test.png")
+
+plot(qnt)
+dev.off()
+
+MAplot(qnt, cex = .8)
 
 
-mz_list <- lapply(raw_files, openMSfile)
+```
 
-mz_list[[1]]
 
-headers_list <- lapply(mz_list, header) 
-peaks <- peaks(ms)
+
+
+
+# mz_list[[1]]
+
+# headers_list <- lapply(mz_list, header) 
+# peaks <- peaks(ms)
 
 ms <- mz_list[[1]]
 hd <- header(ms)
@@ -122,7 +136,7 @@ rtsel <- hd$retentionTime[ms1] / 60 > 5 &
 ??MSmap
 
 ## the map
-M <- MSmap(ms, ms1[rtsel], 400, 500, 0.5, hd)
+M <- MSmap(ms, ms1[rtsel], 200, 800, 0.5, hd)
 
 ## 1
 
@@ -130,6 +144,7 @@ plot(M, aspect = 1, allTicks = FALSE)
 
 plot3D(M)
 
+class(M)
 
 M_df <- as.data.frame(signature(from = M, to = "data.frame"))
 
