@@ -35,12 +35,9 @@ library("mzR") ## the software package
 # install.packages("msdata")
 ## install.packages("readMSdata")
 library("msdata") ## the data package
-<<<<<<< HEAD
 library(RforProteomics)
-=======
 library(tidyverse)
 
->>>>>>> f3176592a8aa444008f86a42ee9a748bccc5b1af
 
 ```
 
@@ -78,7 +75,7 @@ qnt <- readMSData2(files, msLevel = 1, verbose = FALSE, centroided. = TRUE)
 
 plot(qnt[[44]])
 
-<<<<<<< HEAD
+
 #library(mzR)
 #library(msdata)
 
@@ -97,23 +94,21 @@ MAplot(qnt, cex = .8)
 ```
 
 
+```{r}
 
-
-=======
 filepath <- paste0(root, "/data-raw")
 raw_files <- list.files(filepath, pattern="*.mzXML",
                      full.names=TRUE, recursive = TRUE)
 mz_list <- lapply(raw_files, openMSfile)
->>>>>>> f3176592a8aa444008f86a42ee9a748bccc5b1af
 
 # mz_list[[1]]
 
-<<<<<<< HEAD
+
 # headers_list <- lapply(mz_list, header) 
 # peaks <- peaks(ms)
-=======
+
 headers_list <- lapply(mz_list, header) 
->>>>>>> f3176592a8aa444008f86a42ee9a748bccc5b1af
+
 
 ms <- mz_list[[1]]
 ms
