@@ -20,7 +20,7 @@ vignette("RforProteomics")
 To install the necessary packages:
 ```{r, eval=FALSE}
 ## only first time you install Bioconductor packages
- source("http://www.bioconductor.org/biocLite.R")
+## source("http://www.bioconductor.org/biocLite.R")
 ## else
 # library("BiocInstaller")
 # biocLite("RforProteomics", dependencies = TRUE)
@@ -31,6 +31,7 @@ library("mzR") ## the software package
 # install.packages("msdata")
 ## install.packages("readMSdata")
 library("msdata") ## the data package
+library(tidyverse)
 
 
 ```
@@ -58,40 +59,38 @@ root <- rprojroot::find_root_file(criterion = is_rstudio_project)
 root
 ```
 
-## ----style, eval=TRUE, echo=FALSE, results="asis"---------------------------------------
-## BiocStyle::latex()
 
-## ----openraw----------------------------------------------------------------------------
 ```{r}
 
-#library(mzR)
-#library(msdata)
-
- filepath <- paste0(root,
-                    "/data-raw")
- 
-
-
+filepath <- paste0(root, "/data-raw")
 raw_files <- list.files(filepath, pattern="*.mzXML",
                      full.names=TRUE, recursive = TRUE)
- 
-
-
 mz_list <- lapply(raw_files, openMSfile)
 
 mz_list[[1]]
 
 headers_list <- lapply(mz_list, header) 
-peaks <- peaks(ms)
 
 ms <- mz_list[[1]]
+ms
+runInfo(ms)
+
+peaks <- peaks(mz_list)
+
+# get3Dmap(ms, scans = c(0,10), lowMz = 129, highMz = 302, resMz = 1)
+plot(peaks[[1]], xlab = "M/Z", ylab = "Intensity")
+plot(peaks[[2]])
+
 hd <- header(ms)
+all_hd <- lapply(mz_list, header)
+
 names(hd)
 
+?mzR
 
 head(peaks(ms))
 
-runInfo(ms)
+# runInfo(ms)
 
 
 ```
@@ -99,30 +98,58 @@ runInfo(ms)
 ```{r}
 mz_plot <- function(ms, scan){
 
-plot(peaks(ms, scan), type = "h")
+  
+  plot(peaks(ms, scan), type = "h", 
+     xlab = "M/Z",
+     ylab = "Intensity")
 
+  
 }
 
-plot(peaks(ms, 900), type = "h")
-
+mz_plot(ms, 298)
 
 
 ```
+
+# readMzXmlData
+```{r}
+library(pacman)
+p_load("readMzXmlData")
+?`readMzXmlData-package`
+
+spec <- readMzXmlDir(mzXmlDir = filepath)
+
+## plot spectra
+plot(spec[[1]]$spectrum$mass, spec[[1]]$spectrum$intensity, type="n")
+
+l <- length(spec)
+legendStr <- character(l)
+
+for (i in seq(along=spec)) {
+  lines(spec[[i]]$spectrum$mass, spec[[i]]$spectrum$intensity, type="l",
+        col=rainbow(l)[i])
+  legendStr[i] <- basename(spec[[i]]$metaData$file)
+}
+
+## draw legend
+legend(x="topright", legend=legendStr, col=rainbow(l), lwd=1)
+
+```
+
 
 ## A heatmap
 ```{r}
 library(MSnbase)
 ## a set of spectra of interest: MS1 spectra eluted
-## between 30 and 35 minutes retention time
+## between 2 and 13 minutes retention time
 ms1 <- which(hd$msLevel == 1)
-rtsel <- hd$retentionTime[ms1] / 60 > 5 &
-    hd$retentionTime[ms1] / 60 < 30
-
+rtsel <- hd$retentionTime[ms1] / 60 > 2 &
+    hd$retentionTime[ms1] / 60 < 13
 
 ??MSmap
 
 ## the map
-M <- MSmap(ms, ms1[rtsel], 400, 500, 0.5, hd)
+M <- MSmap(ms, ms1[rtsel], 129, 302, 0.5, hd)
 
 ## 1
 
@@ -131,17 +158,11 @@ plot(M, aspect = 1, allTicks = FALSE)
 plot3D(M)
 
 
-M_df <- as.data.frame(signature(from = M, to = "data.frame"))
+## M_df <- as.data.frame(signature(from = M, to =  "data.frame"))
 
 ?`plot3D,MSmap-method`
 
 ```
-
-
-
-
-
-
 
 
 ```{r}

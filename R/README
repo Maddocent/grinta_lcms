@@ -1,0 +1,84 @@
+Hoi Marc,
+
+Hierbij de data die ik heb. De ion trap data bevat scan ranges van massa’s untargeted en de QQQ data bevat targeted massa’s. De geel gearceerde data zijn diegene die je al hebt. Bij iedere datum zijn de samples ontdooid en opgewerkt volgens protocol. De ion trap data van 160509 is een herhaling van de geel gearceerde data, maar dan wel achter elkaar gemeten. Hierbij zijn tevens ook MS/MS scans opgenomen. Hopelijk is het duidelijk zo. Mocht je nog additionele data willen laat het maar weten en dan zet ik ze om en stuur ik ze via wetransfer of iets dergelijks.
+
+Fijn weekend.
+
+Gr. Edward
+
+Ion trap:
+151023 Fietsers 2 en 3 p 1 t/m 5 positieve mode
+160105 Fietser 2 p 1 t/m 5 positieve mode
+160106 Fietser 2 p 1 t/m 5 negatieve mode
+160309 Fietsers 2, 3, 4, 5, 6 en 7 p2 t=0; 60; 180 positieve mode
+160413 Fietsers 7, 9, 10, 13, 14, 15, 16, 17 en 18 p2 t=0; 60; 180 positieve mode
+160429 Fietsers 7, 9, 10 en 17 p2 0; 60; 180 positieve mode
+160509 Alle fietsers p2 0; 60; 180 positieve mode ook MS/MS
+
+QQQ:
+150410 Fietsers 2, 16 en 17 p2 positieve mode
+150604 Fietsers Fietser 16 p 1 t/m 4 posotieve mode
+150911 Fietsers 2 en 3 p 1t/m 5 positieve mode
+150911 Fietsers 2 en 3 p1 t/m 5 negatieve mode                
+
+
+
+Met vriendelijke groet / Kind regards,
+Edward Knaven, Senior Research analist
+
+Lectoraat Analysetechnieken in de Life Sciences
+Avans Hogeschool
+Lovensdijkstraat 63
+4818AJ Breda
+Netherlands
+
+Tel: +31 (0)88 525 8019
+
+Disclaimer ( http://www.avans.nl/over-avans/e-mail-disclaimer ) 
+
+
+We kijken nog even wat we extra aan kunnen leveren morgen
+Martie
+
+
+Verzonden vanaf Samsung Mobile.
+
+-------- Oorspronkelijk bericht --------
+Van: Marc Teunis 
+Datum:08-03-2017 17:59 (GMT+01:00) 
+Aan: Martie Verschuren 
+Cc: Edward Knaven 
+Onderwerp: RE: data 
+
+Aha Martie. Dit helpt zeker!! Ik ga dat zeker doen om de data te reduceren. Blijft echter wel staan dat ik niet alle mzXML files heb denk ik.
+Groet
+Marc
+
+Verzonden met mijn Windows Phone
+________________________________________
+Van: Martie Verschuren
+Verzonden: 8-3-2017 17:51
+Aan: Marc Teunis
+CC: Edward Knaven
+Onderwerp: data
+Hoi Marc
+ 
+Edward en ik hebben de data nog even terug gezocht en bekeken.
+ 
+We hebben in 2015 data geanalyseerd op de tripel-quad. Hierbij hebben we targeted gemeten en alle massa’s gekozen die uit de studie van Utrecht (Fred van genen) kwamen (dus zowel de positieve als de negatieve modus). Van al deze massa’s krijg je dan meerdere pieken qua retentietijd en die hebben we bekeken op het oog welke bij protocol 2 t=0 vs t=60 verschillend zijn. Die massa/retentietijden staan in jouw Excel document die je ons onlangs retourneerde. Dit hebben we gedaan voor fietser 2 en 3 voor alle 5 de protocollen en ook voor fietser 16 maar daar hadden we maar urine van voor 4 protocollen dus die zijn niet in die ene tabel meegenomen die je hebt. Wij hebben die data uit de tabel ook per M/Z waarde in grafieken gezet en die dan bv genormaliseerd voor de baseline van de MS en ook voor het urine volume. Die figuren en datafiles heb je denk ik niet gekregen van ons om het eenvoudig te houden. Je gaf toen ook aan dat je de urine graag als extra kolom wilde toevoegen aan je berekeningen ipv dat wij die al ergens in verwerkt hadden.
+ 
+Omdat we toch twijfelde of we de juiste pieken gekozen hadden hebben we vervolgens alle samples (dus alle fietsers met alle protocollen en tijden) gemeten op de ion trap van protocol 2. Hieruit hebben we de data files opgestuurd van t=0,60, en 180 van p2 omdat je daar kinetiek in zou moeten kunnen zien.
+Als je de xml files in excel open maakt dan zie je een full scan met in elke regel een massa spectrum is van 1 massa. Als we die data in de juiste software van de ion trap stoppen kun je 1 massa selecteren (bv een van de massa’s van de studie van Utrecht) en dan zien of er een kinetiek ontstaat. Ik weet niet wat je in R ziet maar in excel kan ik in de regel niet snel de curve vinden alleen dus in de software van de apparatuur. Theoretisch verwachten we dat je eigenlijk die regels met de interessante massa’s zou moeten kunnen selecteren (als onze aanname van excel juist is)  om de datasets te reduceren van >9000 naar bv 20. Kun jij dat eens proberen of kun je hier met deze info iets mee?
+ 
+Mocht ik onjuistheden getyped hebben dan zal Edward hier nog op reageren
+ 
+We houden hierover even contact
+ 
+Fijne avond
+ 
+Groeten Martie
+ 
+ 
+ 
+Disclaimer ( http://www.avans.nl/over-avans/e-mail-disclaimer ) 
+Disclaimer ( http://www.avans.nl/over-avans/e-mail-disclaimer ) 
