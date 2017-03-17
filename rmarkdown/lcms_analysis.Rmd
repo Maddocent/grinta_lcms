@@ -5,22 +5,20 @@ date: "`r Sys.Date()"
 output: html_document
 ---
 
-see vignette at:
-```{r, eval = FALSE}
-## list all the vignettes in the RforProteomics package
+## Introduction
+This workflow is set-up to create a step-by-step workflow in R to pre-preocess and analyze LC/MS data. Severeral packages are being described and explored:
 
-vignette(package = "RforProteomics")
-## Open the vignette called RforProteomics
-vignette("RforProteomics", package = "RforProteomics")
-## or just
-vignette("RforProteomics")
+Packages included in this workflow:
+`r library(tidyverse, warnings = FALSE, message = FALSE); as_tibble(installed.packages())`
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Packages
 To install the necessary packages:
-```{r, eval=FALSE}
+```{r}
 ## only first time you install Bioconductor packages
-
 # source("http://www.bioconductor.org/biocLite.R")
 ## source("http://www.bioconductor.org/biocLite.R")
 # else
@@ -28,106 +26,192 @@ To install the necessary packages:
 # biocLite("RforProteomics", dependencies = TRUE)
 # biocLite("mzR")
 # biocLite("msdata")
-
-library("mzR") ## the software package
+library("mzR") 
 # install.packages("msdata")
-## install.packages("readMSdata")
-library("msdata") ## the data package
-library(RforProteomics)
+# install.packages("readMSdata")
+#library("msdata") ## the data package
+#library(RforProteomics)
 library(tidyverse)
+# see: http://mzmatch.sourceforge.net/installation.php
+# source("http://bioconductor.org/biocLite.R")
+# biocLite(c("xcms", "multtest", "mzR"))
 
-## see: http://mzmatch.sourceforge.net/installation.php
-
-source("http://bioconductor.org/biocLite.R")
-biocLite(c("xcms", "multtest", "mzR"))
-install.packages(c("rJava", "XML", "snow", "caTools",
-   "bitops", "ptw", "gplots", "tcltk2"))
-
-source ("http://puma.ibls.gla.ac.uk/mzmatch.R/install_mzmatch.R")
-require (mzmatch.R)
-mzmatch.init ()
+# install.packages(c("rJava", "XML", "snow", "caTools",
+#   "bitops", "ptw", "gplots", "tcltk2"))
+# source ("http://puma.ibls.gla.ac.uk/mzmatch.R/install_mzmatch.R")
+#mzmatch.init()
+library(rprojroot)
+library(xcms)
+#require(mzmatch.R)
 
 ```
 
+## Vignettes for "RforProteomics"
+see vignette following 
+```{r, eval = FALSE}
+# list all the vignettes in the RforProteomics package
+vignette(package = "RforProteomics")
+# Open the vignette called RforProteomics
+vignette("RforProteomics", package = "RforProteomics")
+# or just
+vignette("RforProteomics")
+# the vignette for package xcms
+browseVignettes(package = "xcms")
+
+```
 
 
 ## To find the R file that contains the code of the Vignette
-```{r}
-
+```{r, eval = FALSE}
 rfile <- system.file("doc/RforProteomics.R",
 package = "RforProteomics")
 rfile
-
-```
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Loading mzXML data from the Grinta! study
-
 ```{r define_project_root, include=FALSE}
-
 if(!require("rprojroot")) install.packages("rprojroot", dependencies = TRUE)
-library(rprojroot)
 root <- rprojroot::find_root_file(criterion = is_rstudio_project)
 root
 ```
 
 
+## The filepath to the folder containing the *.mzXML files
 ```{r}
-filepath <- paste0(root, "/data-raw")
-files <- list.files(filepath, full.names = TRUE)
+
+filepath <- paste0(root, "/data-raw/grouped")
+# find files from t = x min.
+
+create_xset_from_time <- function(filepath, pattern) {
+ 
+ files_x <- list.files(filepath, full.names = TRUE, 
+                       pattern = pattern, 
+                       recursive = TRUE)
+ xset <- xcmsSet(files = files_x)
+ 
+ return(xset)
+}
+
+# test function
+test_xset <- create_xset_from_time(filepath = filepath, pattern = "*.mzXML")
+test_xset
 # file <- dir(system.file(package = "MSnbase", dir = filepath),
 #full.names = TRUE, pattern = "*mzXML")
+```
 
-qnt <- readMSData2(files, msLevel = 1, verbose = FALSE, centroided. = TRUE)
+```{r}
+###################################################
+### code chunk number 4: PeakMatching1
+###################################################
+xset <- group(test_xset)
 
-plot(qnt[[44]])
+###################################################
+### code chunk number 5: RTCorrection
+###################################################
+xset2 <- retcor(xset, family = "symmetric", plottype = "mdevden")
+
+###################################################
+### code chunk number 6: PeakMatching2
+###################################################
+xset2 <- group(xset2, bw = 10)
 
 
-#library(mzR)
-#library(msdata)
+###################################################
+### code chunk number 7: PeakFillIn
+###################################################
+xset3 <- fillPeaks(xset2)
+xset3
 
 
+###################################################
+### code chunk number 8: AnalysisVisualize
+###################################################
+reporttab <- diffreport(xset3, "WT", "KO", "example", 10,
+                        metlin = 0.15, h=480, w=640)
+reporttab[1:4,]
 
-# mz_list <- lapply(files, openMSfile)
 
-# png(filename = "test.png")
+###################################################
+### code chunk number 9: URL1
+###################################################
+cat("\\url{", as.character(reporttab[1,"metlin"]), "}", sep = "")
 
-plot(qnt)
-dev.off()
 
-MAplot(qnt, cex = .8)
+###################################################
+### code chunk number 10: URL2
+###################################################
+cat("\\url{", as.character(reporttab[3,"metlin"]), "}", sep = "")
+
+
+###################################################
+### code chunk number 11: PeakSelect
+###################################################
+gt <- groups(xset3)
+colnames(gt)
+groupidx1 <- which(gt[,"rtmed"] > 2600 & gt[,"rtmed"] < 2700 & gt[,"npeaks"] == 12)[1]
+groupidx2 <- which(gt[,"rtmed"] > 3600 & gt[,"rtmed"] < 3700 & gt[,"npeaks"] == 12)[1]
+eiccor <- getEIC(xset3, groupidx = c(groupidx1, groupidx2))
+eicraw <- getEIC(xset3, groupidx = c(groupidx1, groupidx2), rt = "raw")
+
+
+###################################################
+### code chunk number 12: EICRaw1
+###################################################
+plot(eicraw, xset3, groupidx = 1)
+
+
+###################################################
+### code chunk number 13: EICRaw2
+###################################################
+plot(eicraw, xset3, groupidx = 2)
+
+
+###################################################
+### code chunk number 14: EICCor1
+###################################################
+plot(eiccor, xset3, groupidx = 1)
+
+
+###################################################
+### code chunk number 15: EICCor2
+###################################################
+plot(eiccor, xset3, groupidx = 2)
+
+
+###################################################
+### code chunk number 16: warnings
+###################################################
+cat("These are the warning")
+warnings()
+
 
 
 ```
 
 
-## PeakML viewer
+
+## 
 ```{r}
-require (mzmatch.R)
-PeakML.Viewer ()
+qnt <- readMSData2(files, msLevel = 1, verbose = FALSE, centroided. = TRUE)
+plot(qnt[[44]])
+
+plot(qnt)
+dev.off()
+MAplot(qnt, cex = .8)
+```
+
+## Reading files using package "xcms"
+```{r}
+PeakML.Viewer()
 ?mzmatch.R	
 #browseVignettes(package = "mzmatch.R")
-browseVignettes(package = "xcms")
-library(xcms)
+
 cdffiles <- list.files(filepath, recursive = TRUE, full.names = TRUE)
 xset <- xcmsSet(cdffiles)
 xset
 
-
+group_xset <- group(xset)
 ``` 
-
-
-
-
-```{r}
-
-filepath <- paste0(root, "/data-raw")
-raw_files <- list.files(filepath, pattern="*.mzXML",
-                     full.names=TRUE, recursive = TRUE)
-mz_list <- lapply(raw_files, openMSfile)
 
 # mz_list[[1]]
 
