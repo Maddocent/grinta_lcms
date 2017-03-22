@@ -8,9 +8,6 @@ output: html_document
 ## Introduction
 This workflow is set-up to create a step-by-step workflow in R to pre-preocess and analyze LC/MS data. Severeral packages are being described and explored:
 
-Packages included in this workflow:
-`r library(tidyverse, warnings = FALSE, message = FALSE); as_tibble(installed.packages())`
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -76,10 +73,14 @@ root
 ```
 
 
-## The filepath to the folder containing the *.mzXML files
+## Creating an xcmsSet object to contain the mzXML files by group. 
+the files are stored in seperate folders: for each time point a folder was created containing the relevant mzXML files.  
+The filepath to the group-folders containing the *.mzXML files and a pettern applying to the files are the arguments for the function "create_xset_from_time". 
 ```{r}
 
 filepath <- paste0(root, "/data-raw/grouped")
+list.files(filepath, full.names = TRUE, recursive = TRUE)
+
 # find files from t = x min.
 
 create_xset_from_time <- function(filepath, pattern) {
@@ -87,7 +88,7 @@ create_xset_from_time <- function(filepath, pattern) {
  files_x <- list.files(filepath, full.names = TRUE, 
                        pattern = pattern, 
                        recursive = TRUE)
- xset <- xcmsSet(files = files_x)
+ xset <- xcmsSet(files = files_x, verbose = TRUE)
  
  return(xset)
 }
@@ -95,40 +96,155 @@ create_xset_from_time <- function(filepath, pattern) {
 # test function
 test_xset <- create_xset_from_time(filepath = filepath, pattern = "*.mzXML")
 test_xset
-# file <- dir(system.file(package = "MSnbase", dir = filepath),
-#full.names = TRUE, pattern = "*mzXML")
+
+
 ```
 
+## Open xset from disk
+```{r, eval=FALSE}
+# save resulting xcmsSet to file
+ save(test_xset, file = "xcmsSet_grinta_test.Rda")
+# load saved xcmsSet to Global Env.
+load(file = "xcmsSet_grinta_test.Rda")
+test_xset
+```
+
+## Grouping peaks according sample-groups
 ```{r}
 ###################################################
 ### code chunk number 4: PeakMatching1
 ###################################################
+# ?group
+
 xset <- group(test_xset)
+
+# accessors to the xcms object
+head(xset@groups)
+head(xset@peaks)
+
+peak_df <- as_tibble(xset@peaks)
+group_df <- as_tibble(xset@groups)
+# an animation of group density 
+# group.density(xset, sleep = 5)
 
 ###################################################
 ### code chunk number 5: RTCorrection
 ###################################################
+?png
+
+png(file = "retcor.png", width = 1200, height = 1200, units = "px")
 xset2 <- retcor(xset, family = "symmetric", plottype = "mdevden")
+dev.off()
 
 ###################################################
 ### code chunk number 6: PeakMatching2
 ###################################################
-xset2 <- group(xset2, bw = 10)
+
+xset2 <- group(xset2, bw = 20)
+
+
+
+?xcms::`group,xcmsSet-method`
+
+df_retcor <- as_tibble(xset2@peaks) 
+# ?spread
+
+# df_retcor_t_0
+#  names(df_retcor_t_0)
 
 
 ###################################################
+###################################################
+
+```
+
+## Plot trials
+```{r, eval = FALSE}
+
+plot_t_0 <- df_retcor %>% filter(sample == "1" | sample == "2") %>%
+  ggplot() + 
+  geom_point(aes(x = mz, y = rt, colour = sample))
+
+plot_t_180 <- df_retcor %>% filter(sample == "3" | sample == "4") %>%
+  ggplot() + 
+  geom_point(aes(x = mz, y = rt, colour = sample))
+
+plot_t_60 <- df_retcor %>% filter(sample == "5" | sample == "6") %>%
+  ggplot() + 
+  geom_point(aes(x = mz, y = rt, colour = sample))
+  
+# library(pacman)
+# p_load(cowplot)
+library(cowplot)
+
+panel <- (cowplot::plot_grid(plot_t_0, plot_t_60, plot_t_180))
+panel
+
+
+
+
+names(xset@groups)
+df <- xset@groups %>% as_tibble() %>% gather(key = group, value = count, t_0:t_60) 
+df$group <- as.factor(df$group)
+df
+levels(df$group)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+
+df %>%
+  ggplot() +
+  geom_point(aes(x = mzmed, y = rtmed)) +
+  facet_wrap(~ group)
+
+xset@groupidx
+
+na.omit(as_tibble(groupval(xset)))
+
+plotrt(xset)
+peaks_summary <- xset@peaks %>% as_tibble() %>% group_by(sample)
+
+
+
+
+```
+
 ### code chunk number 7: PeakFillIn
-###################################################
+```{r}
 xset3 <- fillPeaks(xset2)
 xset3
+#?fill
+
+
+png(file = "retcor3.png", width = 1200, height = 1200, units = "px")
+xset2_plot <- retcor(xset3, family = "symmetric", plottype = "mdevden")
+dev.off()
+xset2_plot
+
+
 
 
 ###################################################
 ### code chunk number 8: AnalysisVisualize
 ###################################################
-reporttab <- diffreport(xset3, "WT", "KO", "example", 10,
+?diffreport
+reporttab <- diffreport(xset3, "t1_0", "t2_60", "t3_180", 
+                        eicmax = 20, eicwidth = 1,
                         metlin = 0.15, h=480, w=640)
-reporttab[1:4,]
+
+reporttab
+
+(significant <- reporttab %>% filter(pvalue <= 0.05) %>%
+  mutate(rtmin = rtmed/60) %>% select(name, 
+                                        pvalue, 
+                                        mzmed, rtmin) %>%
+  arrange(pvalue))
+
+#significant
+
+(significant_metlins <- significant$name %>% as.character())
+#significant_metlins
+  #  write_lines(path = "significant_metlins.txt")
 
 
 ###################################################
@@ -140,16 +256,66 @@ cat("\\url{", as.character(reporttab[1,"metlin"]), "}", sep = "")
 ###################################################
 ### code chunk number 10: URL2
 ###################################################
-cat("\\url{", as.character(reporttab[3,"metlin"]), "}", sep = "")
+cat("\\url{", as.character(reporttab[2,"metlin"]), "}", sep = "")
 
 
-###################################################
-### code chunk number 11: PeakSelect
-###################################################
+``` 
+
+## Code chunk number 11: PeakSelect
+```{r, eval=FALSE}
 gt <- groups(xset3)
+
 colnames(gt)
-groupidx1 <- which(gt[,"rtmed"] > 2600 & gt[,"rtmed"] < 2700 & gt[,"npeaks"] == 12)[1]
-groupidx2 <- which(gt[,"rtmed"] > 3600 & gt[,"rtmed"] < 3700 & gt[,"npeaks"] == 12)[1]
+
+#min_rt_from_martie <- 2*60
+#max_rt_from_martie <- 13*60
+#max_mz_from_martie <- 302
+#min_mz_from_martie <- 129
+
+#find_groupidx <- function(x_set, min_rt, max_rt, min_mz, max_mz, n_peaks, group_id){
+
+#  gt <- groups(x_set)
+  
+#groupidx <-  
+#  which(gt[,"rtmed"] > min_rt & gt[,"rtmed"] <  max_rt & gt[,"npeaks"] == n_peaks)[group_id]
+
+#return(groupidx)
+
+#}
+
+#x_set = xset2
+#min_rt = min_rt_from_martie
+#min_mz = min_mz_from_martie
+#max_rt = max_rt_from_martie
+#max_mz = max_mz_from_martie
+#n_peaks = 1
+#group_id = 1
+
+
+#groupidx1 <- find_groupidx(x_set = x_set, min_rt = min_rt, max_rt = max_rt, min_mz = min_mz,  
+#              max_mz = max_mz, n_peaks = n_peaks, group_id = 1)
+
+
+#x2 <- find_groupidx(x_set = x_set, min_rt = min_rt, max_rt = max_rt, min_mz = min_mz,  
+#              max_mz = max_mz, n_peaks = n_peaks, group_id = group_id)
+
+
+#x3 <- find_groupidx(x_set = x_set, min_rt = min_rt, max_rt = max_rt, min_mz = min_mz,  
+#              max_mz = max_mz, n_peaks = n_peaks, group_id = 3)
+
+groupidx1 <- which(gt[,"rtmed"] > min_rt_from_martie & gt[,"rtmed"] <  max_rt_from_martie & gt[,"npeaks"] == 1)[1]
+
+groupidx2 <- which(gt[,"rtmed"] > 1 & gt[,"rtmed"] < 9000 & gt[,"npeaks"] == 1)[2]
+
+#?getEIC
+
+#xset3 <- group(xset3)
+#?getEIC
+
+#eiccor <- getEIC(xset3)
+#eiccor <- getEIC(gt)
+
+
 eiccor <- getEIC(xset3, groupidx = c(groupidx1, groupidx2))
 eicraw <- getEIC(xset3, groupidx = c(groupidx1, groupidx2), rt = "raw")
 
@@ -157,25 +323,33 @@ eicraw <- getEIC(xset3, groupidx = c(groupidx1, groupidx2), rt = "raw")
 ###################################################
 ### code chunk number 12: EICRaw1
 ###################################################
+png(filename = "eicraw_1.png")
 plot(eicraw, xset3, groupidx = 1)
-
+dev.off()
 
 ###################################################
 ### code chunk number 13: EICRaw2
 ###################################################
+
+png(filename = "eicraw_2.png")
 plot(eicraw, xset3, groupidx = 2)
+dev.off()
+
 
 
 ###################################################
 ### code chunk number 14: EICCor1
 ###################################################
+png(filename = "eiccor_1.png")
 plot(eiccor, xset3, groupidx = 1)
-
+dev.off()
 
 ###################################################
 ### code chunk number 15: EICCor2
 ###################################################
+png(filename = "eiccor_2.png")
 plot(eiccor, xset3, groupidx = 2)
+dev.off()
 
 
 ###################################################
@@ -191,7 +365,7 @@ warnings()
 
 
 ## 
-```{r}
+```{r, eval=FALSE}
 qnt <- readMSData2(files, msLevel = 1, verbose = FALSE, centroided. = TRUE)
 plot(qnt[[44]])
 
@@ -201,7 +375,7 @@ MAplot(qnt, cex = .8)
 ```
 
 ## Reading files using package "xcms"
-```{r}
+```{r, eval=FALSE}
 PeakML.Viewer()
 ?mzmatch.R	
 #browseVignettes(package = "mzmatch.R")
@@ -244,9 +418,9 @@ head(peaks(ms))
 # runInfo(ms)
 
 
-```
 
-```{r}
+
+```{r, eval=FALSE}
 mz_plot <- function(ms, scan){
 
   
@@ -263,7 +437,7 @@ mz_plot(ms, 298)
 ```
 
 # readMzXmlData
-```{r}
+```{r, eval=FALSE}
 library(pacman)
 p_load("readMzXmlData")
 ?`readMzXmlData-package`
@@ -289,7 +463,7 @@ legend(x="topright", legend=legendStr, col=rainbow(l), lwd=1)
 
 
 ## A heatmap
-```{r}
+```{r, eval=FALSE}
 library(MSnbase)
 ## a set of spectra of interest: MS1 spectra eluted
 ## between 2 and 13 minutes retention time
@@ -300,11 +474,8 @@ rtsel <- hd$retentionTime[ms1] / 60 > 2 &
 ??MSmap
 
 ## the map
-<<<<<<< HEAD
 M <- MSmap(ms, ms1[rtsel], 200, 800, 0.5, hd)
-=======
 M <- MSmap(ms, ms1[rtsel], 129, 302, 0.5, hd)
->>>>>>> f3176592a8aa444008f86a42ee9a748bccc5b1af
 
 ## 1
 
@@ -321,13 +492,13 @@ class(M)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 fileName(mz)
  runInfo(mz_list)
  close(mz)
 
 mzxml <- system.file(paste0("", 
-                     package = "msdata")
+                     package = "msdata"))
 aa <- openMSfile(mzxml) ## ramp, default backend
 
 ## ----get header information-------------------------------------------------------------
