@@ -1,0 +1,92 @@
+---
+title: "Data governance and programming rules"
+author: "Marc A.T. Teunis"
+date: "March 22, 2017"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data governance (Rigde, 2015)
+
+* Use a simple, relatively flat folder lay-out for the project 
+* Never edit raw data files received from the client 
+* Use a data log to track metadata of received data sets
+* Assign a unique ID to each data set received
+* Store supporting material near the data 
+* Separate the data receipt area from the data manipulation environment (DME) 
+* Add row IDs to source data
+* Keep original file names 
+* Maintain link between data and original file in the DME 
+* Load data as plain text and typecast as little as possible 
+* Do everything programmatically 
+* Load data sets one by one in the DME (i.e. one code file per data set) 
+* Keep original columns and add edited versions of a column as a new column 
+* Use a simple naming convention for new columns so they can be easily
+discriminated from original columns 
+* Keep chunks of code simple 
+* Indicate the execution order of code in the file name with sequential
+numbering
+* Use a version control system to manage code versions
+* Clean up the DME for each run
+
+## Computing time and machine specs
+
+The system the calculations were performed on:
+```{r} 
+sessionInfo() 
+```
+
+The machine is a 4-core 8 Gb machine running Mint Linux
+
+## Computing time
+The computing time for the code to run was ~40 minutes
+
+
+## Version control
+
+https://www.github.com/maddocent/grinta_lcms
+
+ * Open repository (because the data is a sample)
+ * Data and Code Can be easily shared with others
+ * Full dataset and computations -> private Repository -> https://www.github.com/uashogeschoolutrecht/grinta_lcms
+ 
+## Increasing computational power:
+
+ * Complete dataset has:
+```{r} 
+ 44*5*75
+``` 
+ amount of Mb storage needed.
+ * Total computing power on current machine for complete dataset ~
+```{r} 
+ 5*40
+``` 
+ minutes
+ 
+ * Multiple iterations, waiting time becomed too big
+ * Options: 
+  - Surf: multiple options, seems difficult to arrange
+  - iLab: "UU Bioinformatics Centre" -> possibly best option
+ 
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

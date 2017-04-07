@@ -12,7 +12,7 @@ output:
 ---
 
 ## Introduction
-This workflow is set-up to create a step-by-step workflow in R to pre-preocess and analyze LC/MS data. Severeral packages are being described and explored:
+This workflow is set-up to create a step-by-step workflow in R to pre-preprocess and analyze LC/MS data. Severeral packages are being described and explored:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE)
@@ -21,11 +21,15 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FAL
 ## Packages
 To install the necessary packages:
 ```{r}
-library("mzR") 
-library(tidyverse)
-library(rprojroot)
-library(xcms)
-library(pander)
+if(!require("pacman")) install.packages("pacman", dependencies = TRUE)
+library(pacman)
+p_load(
+  mzR,
+  tidyverse,
+  rprojroot,
+  xcms,
+  pander
+)
 ```
 
 ## Vignettes for "xcms"
@@ -40,14 +44,28 @@ root <- rprojroot::find_root_file(criterion = is_rstudio_project)
 root
 ```
 
-## Creating an xcmsSet object to contain the mzXML files by group. 
+## Copy relevant data (mzXML) files to DME and group them
+To reduce the rist of contaminating th raw data files with changes and unseen edits, the mzXML files in the data-raw folder concerning the Grinta! studie are copied to the DME (Data Manipulation Environment)
+```{r}
+# identify the folders
+current_folder <- paste0(root, "/data-raw/010_D/" )
+new_folder <- paste0(root, "/DME")
+# find the files that you want
+list_of_files <- list.files(current_folder, pattern = "*0.mzXML")
+# copy the files to the new folder
+file.copy(from = current_folder, to= new_folder, 
+          overwrite = FALSE, recursive = TRUE, 
+          copy.mode = TRUE)
+```
 
+## Creating an xcmsSet object to contain the mzXML files by group. 
+The files from the grinta! study are selected by a 
  * The files are stored in seperate folders
  * For each time point a folder was created containing the relevant mzXML files.  
  * The filepath to the group-folders containing the *.mzXML files and a pattern applying to the files are the arguments for the function "create_xset_from_time". 
 ```{r}
-filepath <- paste0(root, "/data-raw/grouped")
-(list.files(filepath, full.names = TRUE, recursive = TRUE))
+filepath <- paste0(root, "/DME")
+(list.files(filepath, full.names = TRUE, recursive = TRUE, pattern = "*0.mzXML"))
 ```
 
 ## Creating a function to create an `xcmsSet`
